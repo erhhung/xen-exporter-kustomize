@@ -1,0 +1,17 @@
+# strategic merge patch must include apiVersion
+# and kind, or else JsonPatches6902 is assumed
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ignored
+spec:
+  revisionHistoryLimit: 1
+  template:
+    spec:
+      containers:
+        # strategic merge patch will
+        # match on array element name
+        - name: xen-exporter
+          env:
+            - name: XEN_HOST
+              value: 192.168.0.151

@@ -1,0 +1,11 @@
+# JsonPatches6902 is assumed if apiVersion and kind are not specified
+# https://datatracker.ietf.org/doc/html/rfc6902
+- op: add
+  path: /metadata/labels/release
+  value: prometheus-stack
+
+# scrape only once per min as
+# dom0 can be slow to respond
+- op: replace
+  path: /spec/endpoints/0/interval
+  value: 1m

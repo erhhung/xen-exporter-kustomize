@@ -1,0 +1,62 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: xen-exporter
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: xen-exporter
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: xen-exporter
+    spec:
+      containers:
+        # https://github.com/MikeDombo/xen-exporter
+        - name: xen-exporter
+          image: ghcr.io/mikedombo/xen-exporter:latest
+          imagePullPolicy: Always
+          ports:
+            - name: http-metrics
+              containerPort: 9100
+              protocol: TCP
+          env:
+            - name: XEN_MODE
+              value: pool
+            - name: XEN_HOST
+              # must be overridden!
+              value: 127.0.0.1
+            - name: XEN_SSL_VERIFY
+              value: "false"
+            - name: XEN_USER
+              value: root
+            - name: XEN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: xen-pool-creds
+                  key: root-pass
+          resources:
+            requests:
+              cpu: 50m
+              memory: 32Mi
+            limits:
+              cpu: 50m
+              memory: 64Mi
+          # don't enable probes because all HTTP requests
+          # are treated as scrapes, which can be expensive
+          # readinessProbe: &probe
+          #   httpGet:
+          #     path: /metrics
+          #     port: 9100
+          #   periodSeconds: 10
+          #   initialDelaySeconds: 10
+          #   # give plenty of time because
+          #   # dom0 can be slow to respond
+          #   timeoutSeconds: 10
+          #   successThreshold: 1
+          #   failureThreshold: 3
+          # livenessProbe:
+          #   <<: *probe
+          #   periodSeconds: 30
+          #   initialDelaySeconds: 30
